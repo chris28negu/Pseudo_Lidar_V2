@@ -1,4 +1,5 @@
 import torch
+import math
 
 
 class AverageMeter(object):
@@ -32,15 +33,15 @@ class Metric(object):
         self.losses = AverageMeter()
 
     def update(self, loss, RMSE_Linear, RMSE_Log, abs_relative, sq_relative, delta, delta_sq, delta_cu):
-        if loss:
+        if not (math.isnan(loss) or math.isinf(loss)):
             self.losses.update(loss)
-        self.RMSELIs.update(RMSE_Linear)
-        self.RMSELGs.update(RMSE_Log)
-        self.ABSRs.update(abs_relative)
-        self.SQRs.update(sq_relative)
-        self.DELTA.update(delta)
-        self.DELTASQ.update(delta_sq)
-        self.DELTACU.update(delta_cu)
+            self.RMSELIs.update(RMSE_Linear)
+            self.RMSELGs.update(RMSE_Log)
+            self.ABSRs.update(abs_relative)
+            self.SQRs.update(sq_relative)
+            self.DELTA.update(delta)
+            self.DELTASQ.update(delta_sq)
+            self.DELTACU.update(delta_cu)
 
     def get_info(self):
         return [self.losses.avg, self.RMSELIs.avg, self.RMSELGs.avg, self.ABSRs.avg, self.SQRs.avg, self.DELTA.avg,

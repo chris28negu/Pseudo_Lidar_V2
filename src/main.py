@@ -43,7 +43,7 @@ parser.add_argument('--maxdepth', type=int, default=80,
 # dataset
 parser.add_argument('--kitti2015', action='store_true',
                     help='If false, use 3d kitti dataset. If true, use kitti stereo 2015, default: False')
-parser.add_argument('--dataset', default='kitti', choices=['sceneflow', 'kitti'],
+parser.add_argument('--dataset', default='kitti', choices=['sceneflow', 'kitti', 'argo'],
                     help='train with sceneflow or kitti')
 parser.add_argument('--datapath', default='',
                     help='root folder of the dataset')
@@ -90,6 +90,10 @@ parser.add_argument('--data_list', default=None,
                     help='generate depth maps for all the data in this list')
 parser.add_argument('--data_tag', default=None,
                     help='the suffix of the depth maps folder')
+
+parser.add_argument('--argo', action='store_true',
+                    help='it gives argo full size image option')
+
 args = parser.parse_args()
 best_RMSE = 1e10
 
@@ -110,16 +114,16 @@ def main():
         TrainImgLoader = None
         import dataloader.KITTI_submission_loader  as KITTI_submission_loader
         TestImgLoader = torch.utils.data.DataLoader(
-            KITTI_submission_loader.SubmiteDataset(args.datapath, args.data_list, args.dynamic_bs),
+            KITTI_submission_loader.SubmiteDataset(args.datapath, args.data_list, args.argo, args.dynamic_bs),
             batch_size=args.bval, shuffle=False, num_workers=args.workers, drop_last=False)
-    elif args.dataset == 'kitti':
+    elif args.dataset == 'kitti' or args.dataset == 'argo':
         train_data, val_data = KITTILoader3D.dataloader(args.datapath, args.split_train, args.split_val,
                                                         kitti2015=args.kitti2015)
         TrainImgLoader = torch.utils.data.DataLoader(
-            KITTILoader_dataset3d.myImageFloder(train_data, True, kitti2015=args.kitti2015, dynamic_bs=args.dynamic_bs),
+            KITTILoader_dataset3d.myImageFloder(train_data, True, kitti2015=args.kitti2015, dynamic_bs=args.dynamic_bs, argo=args.argo),
             batch_size=args.btrain, shuffle=True, num_workers=args.workers, drop_last=False, pin_memory=True)
         TestImgLoader = torch.utils.data.DataLoader(
-            KITTILoader_dataset3d.myImageFloder(val_data, False, kitti2015=args.kitti2015, dynamic_bs=args.dynamic_bs),
+            KITTILoader_dataset3d.myImageFloder(val_data, False, kitti2015=args.kitti2015, dynamic_bs=args.dynamic_bs, argo=args.argo),
             batch_size=args.bval, shuffle=False, num_workers=args.workers, drop_last=False, pin_memory=True)
     else:
         train_data, val_data = listflowfile.dataloader(args.datapath)
